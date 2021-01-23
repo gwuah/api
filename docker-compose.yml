@@ -1,0 +1,50 @@
+version: '3.7'
+services:
+  postgres:
+    image: "postgres:13.1"
+    hostname: postgres
+    container_name: postmates-postgres
+    env_file: .env
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:5.0.10-alpine
+    container_name: postmates-redis
+    ports:
+      - "6379:6379"
+
+  postmates:
+    build:
+      dockerfile: ./Dockerfile
+      context: .
+      args:
+        PORT: ${PORT}
+    container_name: postmates-app
+    ports:
+      - "9000:${PORT}"
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+      - waiter
+
+  waiter:
+    build:
+      dockerfile: ./Dockerfile.wait
+      context: .
+    container_name: postmates-waiter
+    depends_on: 
+      - postgres
+      - redis
+
+    environment:
+      - WAIT_HOSTS=postgres:5432, redis:6379
+      - WAIT_HOSTS_TIMEOUT=300
+      - WAIT_SLEEP_INTERVAL=30
+      - WAIT_HOST_CONNECT_TIMEOUT=30
+      - WAIT_AFTER_HOSTS=0
