@@ -34,7 +34,7 @@ const API_ENDPOINT = "https://termii.com/api/sms/send"
 
 func New(apiKey string) *SMS {
 	if apiKey == "" {
-		log.Fatal("mapbox token required")
+		log.Fatal("termii api key required")
 	}
 	return &SMS{apiKey, os.Getenv("TERMII_SENDER_ID")}
 }
